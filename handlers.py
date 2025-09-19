@@ -31,6 +31,10 @@ async def handle_call_tool(
             return await _handle_click_object(java_caller, args)
         elif name == "get_inventory_count":
             return await _handle_get_inventory_count(java_caller, args)
+        elif name == "check_inventory_for_item":
+            return await _handle_check_inventory_for_item(java_caller, args)
+        elif name == "inventory_contains_item":
+            return await _handle_inventory_contains_item(java_caller, args)
         elif name == "check_bank_open":
             return await _handle_check_bank_open(java_caller, args)
         elif name == "close_bank":
@@ -79,6 +83,8 @@ async def handle_call_tool(
             return await _handle_ground_item_exists(java_caller, args)
         elif name == "get_distance_to_ground_item":
             return await _handle_get_distance_to_ground_item(java_caller, args)
+        elif name == "get_current_tile":
+            return await _handle_get_current_tile(java_caller, args)
         else:
             return [types.TextContent(type="text", text=f"Unknown tool: {name}")]
     
@@ -153,13 +159,14 @@ async def _handle_walk_to_location(java_caller: JavaMethodCaller, args: Dict[str
     """Handle walk_to_location tool."""
     x = args.get("x")
     y = args.get("y")
+    z = args.get("z", 0)  # Default z to 0 if not provided
     
     if x is None or y is None:
         return [types.TextContent(type="text", text="Error: x and y coordinates are required")]
     
-    response = java_caller.walk_to_location(x, y)
+    response = java_caller.walk_to_location(x, y, z)
     if response["success"]:
-        result = response.get("result", f"Walking to ({x}, {y})")
+        result = response.get("result", f"Walking to ({x}, {y}, {z})")
         return [types.TextContent(type="text", text=f"Walk result: {result}")]
     else:
         error = response.get("error", "Unknown error")
@@ -196,6 +203,48 @@ async def _handle_get_inventory_count(java_caller: JavaMethodCaller, args: Dict[
     else:
         error = response.get("error", "Unknown error")
         return [types.TextContent(type="text", text=f"Failed to get inventory count: {error}")]
+
+
+async def _handle_check_inventory_for_item(java_caller: JavaMethodCaller, args: Dict[str, Any]) -> list[types.TextContent]:
+    """Handle check_inventory_for_item tool."""
+    item_name = args.get("item_name")
+    use_item_id = args.get("use_item_id", False)
+    
+    if not item_name:
+        return [types.TextContent(type="text", text="Error: item_name is required")]
+    
+    response = java_caller.check_inventory_for_item(item_name, use_item_id)
+    if response["success"]:
+        count = response.get("result", -1)
+        
+        if count == -1:
+            item_type = "ID" if use_item_id else "name"
+            return [types.TextContent(type="text", text=f"Item {item_type} '{item_name}' not found in inventory")]
+        else:
+            item_type = "ID" if use_item_id else "name"
+            return [types.TextContent(type="text", text=f"Inventory contains {count} of item {item_type} '{item_name}'")]
+    else:
+        error = response.get("error", "Unknown error")
+        return [types.TextContent(type="text", text=f"Failed to check inventory for item: {error}")]
+
+
+async def _handle_inventory_contains_item(java_caller: JavaMethodCaller, args: Dict[str, Any]) -> list[types.TextContent]:
+    """Handle inventory_contains_item tool."""
+    item_name = args.get("item_name")
+    use_item_id = args.get("use_item_id", False)
+    
+    if not item_name:
+        return [types.TextContent(type="text", text="Error: item_name is required")]
+    
+    response = java_caller.inventory_contains_item(item_name, use_item_id)
+    if response["success"]:
+        contains = response.get("result", False)
+        item_type = "ID" if use_item_id else "name"
+        status = "contains" if contains else "does not contain"
+        return [types.TextContent(type="text", text=f"Inventory {status} item {item_type} '{item_name}'")]
+    else:
+        error = response.get("error", "Unknown error")
+        return [types.TextContent(type="text", text=f"Failed to check if inventory contains item: {error}")]
 
 
 async def _handle_check_bank_open(java_caller: JavaMethodCaller, args: Dict[str, Any]) -> list[types.TextContent]:
@@ -554,3 +603,14 @@ async def _handle_get_distance_to_ground_item(java_caller: JavaMethodCaller, arg
     else:
         error = response.get("error", "Unknown error")
         return [types.TextContent(type="text", text=f"Failed to get distance to ground item: {error}")]
+
+
+async def _handle_get_current_tile(java_caller: JavaMethodCaller, args: Dict[str, Any]) -> list[types.TextContent]:
+    """Handle get_current_tile tool."""
+    response = java_caller.get_current_tile()
+    if response["success"]:
+        result = response.get("result", "Current tile unknown")
+        return [types.TextContent(type="text", text=f"Current tile: {result}")]
+    else:
+        error = response.get("error", "Unknown error")
+        return [types.TextContent(type="text", text=f"Failed to get current tile: {error}")]

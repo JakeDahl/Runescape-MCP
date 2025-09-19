@@ -107,14 +107,20 @@ class JavaMethodCaller:
     def calculate(self, a, b, operation):
         return self.call_method_with_response("calculate", a, b, operation)
     
-    def walk_to_location(self, x: int, y: int):
-        return self.call_method_with_response("walkToLocation", x, y)
+    def walk_to_location(self, x: int, y: int, z: int = 0):
+        return self.call_method_with_response("walkToLocation", x, y, z)
     
     def click_object(self, object_name: str):
         return self.call_method_with_response("clickObject", object_name)
     
     def get_inventory_count(self):
         return self.call_method_with_response("getInventoryCount")
+    
+    def check_inventory_for_item(self, item_name: str, use_item_id: bool = False):
+        return self.call_method_with_response("checkInventoryForItem", item_name, use_item_id)
+    
+    def inventory_contains_item(self, item_name: str, use_item_id: bool = False):
+        return self.call_method_with_response("inventoryContainsItem", item_name, use_item_id)
     
     def check_bank_open(self):
         return self.call_method_with_response("bankIsOpen")
@@ -186,3 +192,6 @@ class JavaMethodCaller:
     
     def get_distance_to_ground_item(self, item_name: str):
         return self.call_method_with_response("getDistanceToGroundItem", item_name)
+    
+    def get_current_tile(self):
+        return self.call_method_with_response("getPlayerLocation")

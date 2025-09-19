@@ -75,7 +75,7 @@ def get_tool_definitions() -> list[types.Tool]:
         ),
         types.Tool(
             name="walk_to_location",
-            description="Command the bot to walk to specific coordinates",
+            description="Command the bot to walk to specific coordinates (x, y, z)",
             inputSchema={
                 "type": "object",
                 "properties": {
@@ -86,6 +86,10 @@ def get_tool_definitions() -> list[types.Tool]:
                     "y": {
                         "type": "integer",
                         "description": "Y coordinate"
+                    },
+                    "z": {
+                        "type": "integer",
+                        "description": "Z coordinate (plane/level), optional, defaults to 0"
                     }
                 },
                 "required": ["x", "y"]
@@ -112,6 +116,42 @@ def get_tool_definitions() -> list[types.Tool]:
                 "type": "object",
                 "properties": {},
                 "required": []
+            }
+        ),
+        types.Tool(
+            name="check_inventory_for_item",
+            description="Check if inventory contains a specific item and return count. Returns -1 if item not found, 0+ for actual count",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "item_name": {
+                        "type": "string",
+                        "description": "Name or ID of the item to check for"
+                    },
+                    "use_item_id": {
+                        "type": "boolean",
+                        "description": "Whether to treat item_name as an ID (true) or name (false). Default is false (names)."
+                    }
+                },
+                "required": ["item_name"]
+            }
+        ),
+        types.Tool(
+            name="inventory_contains_item",
+            description="Check if inventory contains a specific item (boolean result). Simple true/false check without count",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "item_name": {
+                        "type": "string",
+                        "description": "Name or ID of the item to check for"
+                    },
+                    "use_item_id": {
+                        "type": "boolean",
+                        "description": "Whether to treat item_name as an ID (true) or name (false). Default is false (names)."
+                    }
+                },
+                "required": ["item_name"]
             }
         ),
         types.Tool(
@@ -447,6 +487,15 @@ def get_tool_definitions() -> list[types.Tool]:
                     }
                 },
                 "required": ["item_name"]
+            }
+        ),
+        types.Tool(
+            name="get_current_tile",
+            description="Get the player's current tile coordinates (x, y, z)",
+            inputSchema={
+                "type": "object",
+                "properties": {},
+                "required": []
             }
         )
     ]
